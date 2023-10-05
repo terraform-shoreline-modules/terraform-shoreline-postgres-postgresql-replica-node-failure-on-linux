@@ -1,0 +1,126 @@
+{
+  "name": "postgresql_replica_node_failure_on_linux",
+  "description": "This incident type refers to the failure of a replica node in a PostgreSQL database system that is running on a Linux-based operating system. A replica node is a copy of the primary database node that is used to provide high availability and fault tolerance. When a replica node fails, it can result in data loss, decreased system performance, and potential downtime for users. This type of incident requires immediate attention from a software engineer to diagnose and resolve the issue as quickly as possible.",
+  "params": [
+    {
+      "name": "PRIMARY_NODE_IP_ADDRESS",
+      "value": ""
+    },
+    {
+      "name": "REPLICA_NODE_IP_ADDRESS",
+      "value": ""
+    },
+    {
+      "name": "PATH_TO_PSQL_BINARY",
+      "value": ""
+    },
+    {
+      "name": "PATH_TO_POSTGRESQL_LOG_FILE",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## PostgreSQL Replica Node Failure on Linux.\nThis incident type refers to the failure of a replica node in a PostgreSQL database system that is running on a Linux-based operating system. A replica node is a copy of the primary database node that is used to provide high availability and fault tolerance. When a replica node fails, it can result in data loss, decreased system performance, and potential downtime for users. This type of incident requires immediate attention from a software engineer to diagnose and resolve the issue as quickly as possible."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if the replica node is up and running"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `systemctl status postgresql`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the logs for any errors or warnings related to the replica node"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `journalctl -u postgresql`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the replication status of the replica node"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `${PATH_TO_PSQL_BINARY} -c \"SELECT * FROM pg_stat_replication;\"`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the disk space and usage on the replica node"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `df -h`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if the replica node is in sync with the primary node"
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_pg_last_xlog_location($PATH_TO_PSQL_BINARY)"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the network connectivity between the primary and replica nodes. Ensure that there are no network issues such as high packet loss or latency."
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_network_connectivity_check($PRIMARY_NODE_IP_ADDRESS, $REPLICA_NODE_IP_ADDRESS)"
+    },
+    {
+      "name": "cell_14",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Restart the replica node and monitor the logs for any error messages."
+    },
+    {
+      "name": "cell_15",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_stop_start_postgres_logs($PATH_TO_POSTGRESQL_LOG_FILE)"
+    }
+  ]
+}
